@@ -11,14 +11,14 @@ BOLD='\033[1m'
 
 clear
 echo -e "${B} █▀▀ ${R}█▀█ ${Y}█▀█ ${B}█▀▀ ${G}█   ${R}█▀▀${RESET}"
-echo -e "${B} █ █ ${R}█ █ ${Y}█ █ ${B}█ █ ${G}█   ${R}██▀${RESET}"
+echo -e "${B} █ █ ${R}█ █ ${Y}█ █ ${B}█ █ ${G}█   ${R}█▀${RESET}"
 echo -e "${B} ▀▀▀ ${R}▀▀▀ ${Y}▀▀▀ ${B}▀▀▀ ${G}▀▀▀ ${R}▀▀▀${RESET}"
-echo -e "${C}${BOLD}   ☬ SHΞN™ SECURE KEY VAULT ☬${RESET}"
+echo -e "${C}${BOLD}   ☬ SHΞN™ SECURE KEY CRACK ☬${RESET}"
 echo "──────────────────────────────────────────"
 
 # اضافه کردن مینی‌سرور 40 کیلوبایتی (darkhttpd) برای دور زدن محدودیت مرورگر
 if ! command -v openssl &> /dev/null || ! command -v darkhttpd &> /dev/null; then
-    echo -e "${Y}⚙ Installing minimal tools (OpenSSL + Micro Server)...${RESET}"
+    echo -e "${Y}☬ Installing ®️SHΞN™apk tools (OpenSSL + Micro Server)...${RESET}"
     pkg update -y > /dev/null 2>&1
     pkg install -y openssl termux-tools darkhttpd > /dev/null 2>&1 &
     pid=$!
@@ -29,10 +29,10 @@ if ! command -v openssl &> /dev/null || ! command -v darkhttpd &> /dev/null; the
         printf "\r${C}[${spin:$i:1}] Preparing environment...${RESET}"
         sleep 0.1
     done
-    printf "\r${G}[✔] Environment ready!                 ${RESET}\n"
+    printf "\r${G}[✔] Environment Ready!                 ${RESET}\n"
 fi
 
-echo -e "${B}⚡ Generating Android Key...${RESET}"
+echo -e "${B} 📦 Generating Android Key...${RESET}"
 
 STORE_PASS=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 ALIAS_NAME="bds_key_$(date +%s)"
