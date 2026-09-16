@@ -50,54 +50,135 @@ rm -f key.pem cert.pem
 BASE64_KEY=$(base64 -w 0 release.p12)
 HTML_FILE="bds_secrets.html"
 
-# صفحه HTML
+# صفحه HTML - بهبود یافته
 cat << 'HTMLEOF' > "$HTML_FILE"
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BDS Secrets</title>
+<title>BDS Secure Assets</title>
 <style>
-  body { background: #090d16; color: #e2e8f0; font-family: system-ui, sans-serif; padding: 20px; margin: 0;}
-  .container { max-width: 600px; margin: 0 auto; }
-  .header { text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 24px; letter-spacing: 2px;}
+  body { background: #0b1121; color: #f8fafc; font-family: 'Segoe UI', system-ui, sans-serif; padding: 20px; margin: 0; display: flex; flex-direction: column; align-items: center;}
+  .container { width: 100%; max-width: 650px; }
+  
+  /* Header Styles */
+  .header-container { text-align: center; margin-bottom: 40px; margin-top: 20px;}
+  .header { font-size: 54px; font-weight: 800; letter-spacing: -2px; margin-bottom: 0; line-height: 1;}
+  .subtitle { font-size: 13px; color: #94a3b8; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; margin-top: 8px;}
   .g-b { color: #4285F4; } .g-r { color: #EA4335; } .g-y { color: #FBBC05; } .g-g { color: #34A853; }
-  .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);}
-  .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .name { color: #00f0ff; font-weight: bold; font-size: 14px; }
-  .btn { background: #1e293b; border: 1px solid #334155; color: #fff; padding: 6px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s;}
-  .btn:hover { background: #00f0ff; color: #000; }
-  .box { background: rgba(0,0,0,0.5); padding: 12px; border-radius: 8px; color: #94a3b8; font-size: 13px; font-family: monospace; overflow-x: auto; white-space: nowrap; border: 1px solid rgba(255,255,255,0.05);}
+  
+  /* Cards */
+  .card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); backdrop-filter: blur(10px);}
+  .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .name { color: #38bdf8; font-weight: 700; font-size: 15px; letter-spacing: 0.5px;}
+  .btn { background: #0f172a; border: 1px solid #334155; color: #e2e8f0; padding: 6px 14px; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 12px; font-weight: bold;}
+  .btn:hover { background: #38bdf8; color: #0f172a; border-color: #38bdf8;}
+  .box { background: rgba(0,0,0,0.6); padding: 14px; border-radius: 8px; color: #cbd5e1; font-size: 13px; font-family: 'Courier New', Courier, monospace; overflow-x: auto; white-space: nowrap; border: 1px inset rgba(255,255,255,0.05);}
+  
+  /* Action Buttons Group */
+  .actions-container { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; justify-content: center; padding-bottom: 40px;}
+  .btn-action { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 10px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; color: white; text-decoration: none;}
+  .btn-action:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.3);}
+  .btn-action svg { width: 18px; height: 18px; fill: currentColor;}
+  
+  .btn-json { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .btn-prompt { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+  .btn-gpt { background: linear-gradient(135deg, #10a37f, #059669); }
 </style>
 </head>
 <body>
 <div class="container">
-  <div class="header">
-    <span class="g-b">G</span><span class="g-r">o</span><span class="g-y">o</span><span class="g-b">g</span><span class="g-g">l</span><span class="g-r">e</span> Secrets
+  
+  <div class="header-container">
+    <div class="header">
+      <span class="g-b">G</span><span class="g-r">o</span><span class="g-y">o</span><span class="g-b">g</span><span class="g-g">l</span><span class="g-r">e</span>
+    </div>
+    <div class="subtitle">Secret key asset</div>
   </div>
+
   <div class="card">
-    <div class="card-top"><span class="name">BDS_KEYSTORE_PASSWORD</span><button class="btn" onclick="copyVal('s1', this)">Copy</button></div>
+    <div class="card-top"><span class="name">KEYSTORE_PASSWORD</span><button class="btn" onclick="copyVal('s1', this)">Copy</button></div>
     <div class="box" id="s1">__STORE_PASS__</div>
   </div>
   <div class="card">
-    <div class="card-top"><span class="name">BDS_KEY_ALIAS</span><button class="btn" onclick="copyVal('s2', this)">Copy</button></div>
+    <div class="card-top"><span class="name">KEY_ALIAS</span><button class="btn" onclick="copyVal('s2', this)">Copy</button></div>
     <div class="box" id="s2">__ALIAS_NAME__</div>
   </div>
   <div class="card">
-    <div class="card-top"><span class="name">BDS_KEY_PASSWORD</span><button class="btn" onclick="copyVal('s3', this)">Copy</button></div>
+    <div class="card-top"><span class="name">KEY_PASSWORD</span><button class="btn" onclick="copyVal('s3', this)">Copy</button></div>
     <div class="box" id="s3">__STORE_PASS__</div>
   </div>
   <div class="card">
-    <div class="card-top"><span class="name">BDS_KEYSTORE (Base64)</span><button class="btn" onclick="copyVal('s4', this)">Copy</button></div>
+    <div class="card-top"><span class="name">KEYSTORE (Base64)</span><button class="btn" onclick="copyVal('s4', this)">Copy</button></div>
     <div class="box" id="s4">__BASE64_KEY__</div>
   </div>
+
+  <div class="actions-container">
+    <button class="btn-action btn-json" onclick="downloadJSON()">
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      Download JSON
+    </button>
+    
+    <button class="btn-action btn-prompt" id="promptBtn" onclick="copyAIPrompt(this)">
+      <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+      Copy AI Prompt
+    </button>
+
+    <a href="https://chatgpt.com/" target="_blank" class="btn-action btn-gpt">
+      <svg viewBox="0 0 24 24"><path d="M20.5 10.5l-2.5-1.5-2.5 1.5v3l2.5 1.5 2.5-1.5v-3zM10.5 5.5l-2.5-1.5-2.5 1.5v3l2.5 1.5 2.5-1.5v-3zM15.5 14.5l-2.5-1.5-2.5 1.5v3l2.5 1.5 2.5-1.5v-3z"/></svg>
+      Open ChatGPT
+    </a>
+  </div>
+
 </div>
+
 <script>
+const appSecrets = {
+  "KEYSTORE_PASSWORD": "__STORE_PASS__",
+  "KEY_ALIAS": "__ALIAS_NAME__",
+  "KEY_PASSWORD": "__STORE_PASS__",
+  "KEYSTORE_BASE64": "__BASE64_KEY__"
+};
+
 function copyVal(id, btn) {
   navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => {
-    let old = btn.innerText; btn.innerText = 'Copied ✓'; btn.style.background = '#34A853'; btn.style.color = '#fff';
-    setTimeout(() => { btn.innerText = old; btn.style.background = '#1e293b'; }, 1500);
+    let old = btn.innerText; 
+    btn.innerText = 'Copied ✓'; 
+    btn.style.background = '#34A853'; 
+    btn.style.color = '#fff';
+    setTimeout(() => { 
+      btn.innerText = old; 
+      btn.style.background = '#0f172a'; 
+    }, 1500);
+  });
+}
+
+function downloadJSON() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appSecrets, null, 2));
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href",     dataStr);
+  downloadAnchorNode.setAttribute("download", "bds_android_keys.json");
+  document.body.appendChild(downloadAnchorNode);
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+}
+
+function copyAIPrompt(btn) {
+  const promptText = `I have generated my Android Keystore parameters. I need to sign my Android application using these credentials. 
+Please provide the exact Gradle configuration (build.gradle/kts) or GitHub Actions workflow to inject these values properly:
+
+- KEYSTORE_PASSWORD: ${appSecrets.KEYSTORE_PASSWORD}
+- KEY_ALIAS: ${appSecrets.KEY_ALIAS}
+- KEY_PASSWORD: ${appSecrets.KEY_PASSWORD}
+- KEYSTORE_BASE64: [base64_string_is_ready_but_too_long_to_paste_here]
+
+How should I securely decode the base64 keystore and apply these variables in my build pipeline?`;
+
+  navigator.clipboard.writeText(promptText).then(() => {
+    let originalHtml = btn.innerHTML;
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Prompt Copied!`;
+    setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
   });
 }
 </script>
