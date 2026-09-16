@@ -10,35 +10,30 @@ RESET='\033[0m'
 BOLD='\033[1m'
 
 clear
-
-# Compact Pixel Art Google Logo
 echo -e "${B} █▀▀ ${R}█▀█ ${Y}█▀█ ${B}█▀▀ ${G}█   ${R}█▀▀${RESET}"
 echo -e "${B} █ █ ${R}█ █ ${Y}█ █ ${B}█ █ ${G}█   ${R}██▀${RESET}"
 echo -e "${B} ▀▀▀ ${R}▀▀▀ ${Y}▀▀▀ ${B}▀▀▀ ${G}▀▀▀ ${R}▀▀▀${RESET}"
 echo -e "${C}${BOLD}   ☬ SHΞN™ SECURE KEY VAULT ☬${RESET}"
 echo "──────────────────────────────────────────"
 
-# Fast Dependency Check with Spinner
-if ! command -v openssl &> /dev/null || ! command -v termux-open &> /dev/null; then
-    echo -e "${Y}⚙ Installing minimal tools (OpenSSL)...${RESET}"
+# اضافه کردن مینی‌سرور 40 کیلوبایتی (darkhttpd) برای دور زدن محدودیت مرورگر
+if ! command -v openssl &> /dev/null || ! command -v darkhttpd &> /dev/null; then
+    echo -e "${Y}⚙ Installing minimal tools (OpenSSL + Micro Server)...${RESET}"
     pkg update -y > /dev/null 2>&1
-    pkg install -y openssl termux-tools > /dev/null 2>&1 &
+    pkg install -y openssl termux-tools darkhttpd > /dev/null 2>&1 &
     pid=$!
     spin='-\|/'
     i=0
     while kill -0 $pid 2>/dev/null; do
         i=$(( (i+1) %4 ))
-        printf "\r${C}[${spin:$i:1}] Downloading dependencies...${RESET}"
+        printf "\r${C}[${spin:$i:1}] Preparing environment...${RESET}"
         sleep 0.1
     done
-    printf "\r${G}[✔] Tools installed successfully!       ${RESET}\n"
-else
-    echo -e "${G}[✔] Required tools are already installed.${RESET}"
+    printf "\r${G}[✔] Environment ready!                 ${RESET}\n"
 fi
 
 echo -e "${B}⚡ Generating Android Key...${RESET}"
 
-# Generate Key with OpenSSL
 STORE_PASS=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 ALIAS_NAME="bds_key_$(date +%s)"
 
@@ -55,7 +50,7 @@ rm -f key.pem cert.pem
 BASE64_KEY=$(base64 -w 0 release.p12)
 HTML_FILE="bds_secrets.html"
 
-# 100% Offline HTML UI (No CDN, No Blank Screen)
+# صفحه HTML
 cat << 'HTMLEOF' > "$HTML_FILE"
 <!DOCTYPE html>
 <html lang="en">
@@ -81,7 +76,6 @@ cat << 'HTMLEOF' > "$HTML_FILE"
   <div class="header">
     <span class="g-b">G</span><span class="g-r">o</span><span class="g-y">o</span><span class="g-b">g</span><span class="g-g">l</span><span class="g-r">e</span> Secrets
   </div>
-
   <div class="card">
     <div class="card-top"><span class="name">BDS_KEYSTORE_PASSWORD</span><button class="btn" onclick="copyVal('s1', this)">Copy</button></div>
     <div class="box" id="s1">__STORE_PASS__</div>
@@ -115,5 +109,13 @@ sed -i "s/__STORE_PASS__/$STORE_PASS/g" "$HTML_FILE"
 sed -i "s/__ALIAS_NAME__/$ALIAS_NAME/g" "$HTML_FILE"
 sed -i "s|__BASE64_KEY__|$BASE64_KEY|g" "$HTML_FILE"
 
-echo -e "${G}✔ Success! Launching browser...${RESET}"
-termux-open "$HTML_FILE" 2>/dev/null || xdg-open "$HTML_FILE" 2>/dev/null
+# اجرای مینی‌سرور لوکال هاست برای دور زدن محدودیت اندروید
+pkill -f "darkhttpd" 2>/dev/null
+PORT=$((8000 + RANDOM % 1000))
+darkhttpd . --port $PORT >/dev/null 2>&1 &
+
+echo -e "${G}✔ Success! Launching securely on localhost...${RESET}"
+sleep 1
+
+# باز کردن آدرس سرور به جای آدرس فایل
+termux-open "http://127.0.0.1:$PORT/$HTML_FILE" 2>/dev/null
