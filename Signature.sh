@@ -1,58 +1,56 @@
-cat << 'EOF' > bds_keygen.sh
 #!/data/data/com.termux/files/usr/bin/bash
 
-# --- ANSI Colors ---
-R='\033[38;2;234;67;53m'
-G='\033[38;2;52;168;83m'
+# --- ANSI TrueColor ---
 B='\033[38;2;66;133;244m'
+R='\033[38;2;234;67;53m'
 Y='\033[38;2;251;188;5m'
+G='\033[38;2;52;168;83m'
 C='\033[38;2;0;240;255m'
+W='\033[38;2;255;255;255m'
+DIM='\033[2m'
 RESET='\033[0m'
 BOLD='\033[1m'
 
 clear
 
-# Pixel Art Google Logo
-echo -e "${B}   ▄████  ${R} ▄████▄  ${Y} ▄████▄  ${B} ▄████  ${G}█     ${R} ▄████▄ ${RESET}"
-echo -e "${B}  ██      ${R}██    ██ ${Y}██    ██ ${B}██   ██ ${G}█     ${R}██▄▄▄▄  ${RESET}"
-echo -e "${B}  ██ ▄███ ${R}██    ██ ${Y}██    ██ ${B}█████▀ ${G}█     ${R}██▀▀▀▀  ${RESET}"
-echo -e "${B}  ██   ██ ${R}██    ██ ${Y}██    ██ ${B}██  ██ ${G}█     ${R}██      ${RESET}"
-echo -e "${B}   ▀████▀ ${R} ▀████▀  ${Y} ▀████▀  ${B} ▀████ ${G}█████ ${R} ▀████▀ ${RESET}"
-echo ""
-echo -e "${C}${BOLD}         ☬ SHΞN™ SECURE KEY GENERATOR ☬${RESET}"
-echo -e "───────────────────────────────────────────────────────"
+# Compact Pixel-Art Google Logo
+echo -e "${B} █▀▀ ${R}█▀█ ${Y}█▀█ ${B}█▀▀ ${G}█   ${R}█▀▀${RESET}"
+echo -e "${B} █ █ ${R}█ █ ${Y}█ █ ${B}█ █ ${G}█   ${R}██▀${RESET}"
+echo -e "${B} ▀▀▀ ${R}▀▀▀ ${Y}▀▀▀ ${B}▀▀▀ ${G}▀▀▀ ${R}▀▀▀${RESET}"
+echo -e "${C}${BOLD}   ☬ SHΞN™ SECURE KEY VAULT ☬${RESET}"
+echo -e "${DIM}──────────────────────────────────────────${RESET}"
 
-# Spinner animation function
-spinner() {
-    local pid=$!
-    local delay=0.1
-    local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
-        local temp=${spinstr#?}
-        printf " [%c]  $1" "$spinstr"
-        local spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\r"
-    done
-    printf "    \r"
-}
+# Package check with live output
+REQUIRED_PKGS=("openjdk-17" "coreutils" "termux-tools")
+MISSING_PKGS=()
 
-# Verify and install dependencies
-if ! command -v keytool &> /dev/null || ! command -v termux-open &> /dev/null; then
-    echo -e "${Y}⚙ Installing required packages (Java & Coreutils)...${RESET}"
-    (pkg update -y && pkg install -y openjdk-17 coreutils termux-tools) > /dev/null 2>&1 &
-    spinner "Installing dependencies..."
+for pkg in "${REQUIRED_PKGS[@]}"; do
+    if ! dpkg -s "$pkg" >/dev/null 2>&1; then
+        MISSING_PKGS+=("$pkg")
+    fi
+done
+
+if [ ${#MISSING_PKGS[@]} -gt 0 ]; then
+    echo -e "${Y}⚙ Installing required packages: ${MISSING_PKGS[*]}${RESET}"
+    echo -e "${DIM}Updating repositories...${RESET}"
+    pkg update -y
+    echo -e "${DIM}Installing dependencies...${RESET}"
+    pkg install -y "${MISSING_PKGS[@]}"
     echo -e "${G}✔ Dependencies installed successfully.${RESET}"
+    echo -e "${DIM}──────────────────────────────────────────${RESET}"
+else
+    echo -e "${G}✔ All dependencies verified.${RESET}"
 fi
 
-echo -e "${B}⚡ Generating Google-compliant Keystore (RSA 2048 / SHA256)...${RESET}"
+# Generating Keystore
+echo -e "${B}⚡ Generating Android Key (RSA 2048 / SHA256)...${RESET}"
 
 OUTPUT_KEY="release.jks"
 ALIAS_NAME="bds_key_$(date +%s)"
 STORE_PASS=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 KEY_PASS=$STORE_PASS
 
-(keytool -genkeypair -v \
+keytool -genkeypair -v \
   -keystore "$OUTPUT_KEY" \
   -keyalg RSA \
   -keysize 2048 \
@@ -62,8 +60,7 @@ KEY_PASS=$STORE_PASS
   -storepass "$STORE_PASS" \
   -keypass "$KEY_PASS" \
   -dname "CN=BDS, OU=Mobile, O=SHEN, L=Chalus, ST=Mazandaran, C=US" \
-  -noprompt 2>/dev/null) &
-spinner "Generating cryptographic signatures..."
+  -noprompt >/dev/null 2>&1
 
 BASE64_KEY=$(base64 -w 0 "$OUTPUT_KEY")
 HTML_FILE="bds_secrets.html"
@@ -93,16 +90,8 @@ cat << 'HTMLEOF' > "$HTML_FILE"
     justify-content: center;
   }
   .container { width: 100%; max-width: 650px; }
-  .header {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-  .google-title {
-    font-size: 26px;
-    font-weight: 900;
-    letter-spacing: 2px;
-    margin-bottom: 6px;
-  }
+  .header { text-align: center; margin-bottom: 24px; }
+  .google-title { font-size: 26px; font-weight: 900; letter-spacing: 2px; margin-bottom: 6px; }
   .g-b { color: #4285F4; }
   .g-r { color: #EA4335; }
   .g-y { color: #FBBC05; }
@@ -125,7 +114,6 @@ cat << 'HTMLEOF' > "$HTML_FILE"
     border-radius: 14px;
     padding: 16px;
     margin-bottom: 16px;
-    position: relative;
     box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   }
   .card-header {
@@ -161,12 +149,7 @@ cat << 'HTMLEOF' > "$HTML_FILE"
     white-space: nowrap;
     border: 1px solid rgba(255, 255, 255, 0.05);
   }
-  .footer {
-    text-align: center;
-    font-size: 11px;
-    color: #64748b;
-    margin-top: 24px;
-  }
+  .footer { text-align: center; font-size: 11px; color: #64748b; margin-top: 24px; }
 </style>
 </head>
 <body>
@@ -206,14 +189,14 @@ cat << 'HTMLEOF' > "$HTML_FILE"
 
   <div class="card">
     <div class="card-header">
-      <span class="secret-name">BDS_KEYSTORE (Base64)</span>
+      <span class="secret-name">BDS_KEYSTORE</span>
       <button class="copy-btn" onclick="copyVal('sec4', this)">Copy</button>
     </div>
     <div class="secret-box" id="sec4">__BASE64_KEY__</div>
   </div>
 
   <div class="footer">
-    Key saved as <code style="color:var(--accent)">release.jks</code> locally. Make sure to back it up!
+    Key saved locally as <code style="color:var(--accent)">release.jks</code>
   </div>
 </div>
 
@@ -236,17 +219,12 @@ function copyVal(id, btn) {
 </html>
 HTMLEOF
 
-# Inject generated values
 sed -i "s/__STORE_PASS__/$STORE_PASS/g" "$HTML_FILE"
 sed -i "s/__ALIAS_NAME__/$ALIAS_NAME/g" "$HTML_FILE"
 sed -i "s/__KEY_PASS__/$KEY_PASS/g" "$HTML_FILE"
 sed -i "s|__BASE64_KEY__|$BASE64_KEY|g" "$HTML_FILE"
 
-echo -e "${G}✔ Values successfully generated & HTML ready.${RESET}"
-echo -e "${C}🌐 Launching browser interface...${RESET}"
+echo -e "${G}✔ Keystore created & UI ready.${RESET}"
+echo -e "${C}🌐 Opening browser...${RESET}"
 
-termux-open "$HTML_FILE" 2>/dev/null || xdg-open "$HTML_FILE" 2>/dev/null || echo -e "${Y}Open $HTML_FILE manually in your browser.${RESET}"
-EOF
-
-chmod +x bds_keygen.sh
-./bds_keygen.sh
+termux-open "$HTML_FILE" 2>/dev/null || xdg-open "$HTML_FILE" 2>/dev/null
